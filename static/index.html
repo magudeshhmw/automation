@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Mailer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">✉</div>
+      <div><b>Event Mailer</b><small>Invites · Certificates</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-step="account"><i>1</i><span><b>Account</b><small id="navAccount">Connect Gmail</small></span></button>
+      <button data-step="people"><i>2</i><span><b>Participants</b><small id="navPeople">Upload sheet</small></span></button>
+      <button data-step="message"><i>3</i><span><b>Message</b><small id="navMessage">Write email</small></span></button>
+      <button data-step="certificate"><i>4</i><span><b>Certificate</b><small id="navCert">Optional</small></span></button>
+      <button data-step="send"><i>5</i><span><b>Review &amp; Send</b><small id="navSend">Test, then send</small></span></button>
+    </nav>
+    <div class="side-foot">
+      <div id="saveState" class="save-state"></div>
+      <div class="acct" id="acctChip"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- ============ 1 · ACCOUNT ============ -->
+    <section class="page" id="page-account">
+      <header class="page-head">
+        <div><div class="eyebrow">Step 1 of 5</div><h1>Connect your Gmail</h1>
+        <p>Do this once. Everything else unlocks the moment Gmail says ✔.</p></div>
+      </header>
+
+      <div class="narrow">
+        <div class="card connected hidden" id="acctConnected">
+          <div class="big-check">✔</div>
+          <div class="grow"><h3>Connected</h3><p class="muted" id="acctConnectedText"></p></div>
+          <button class="btn" id="acctChange">Change account</button>
+          <button class="btn primary" data-go="people">Continue →</button>
+        </div>
+
+        <div class="card" id="acctForm">
+          <ol class="howto">
+            <li><span>1</span><div>Open <a href="https://myaccount.google.com/security" target="_blank">Google Account › Security</a> and turn on <b>2-Step Verification</b>.</div></li>
+            <li><span>2</span><div>Open <a href="https://myaccount.google.com/apppasswords" target="_blank"><b>App Passwords</b></a>.<em>Check the picture at the top right: it must be the SAME Gmail you type below.</em></div></li>
+            <li><span>3</span><div>Name it <i>Event Mailer</i>, click <b>Create</b>, copy the <b>16-letter code</b>.</div></li>
+            <li><span>4</span><div>Paste it below and click <b>Connect</b>.</div></li>
+          </ol>
+          <div class="grid2">
+            <div class="field"><label>Gmail address</label><input type="email" id="cfgEmail" placeholder="yourname@gmail.com" autocomplete="username"></div>
+            <div class="field"><label>Sender name <span class="muted">(what people see)</span></label><input type="text" id="cfgName" placeholder="e.g. Magudesh – Daily Meetup"></div>
+          </div>
+          <div class="field"><label>16-letter App Password <span class="muted">(NOT your normal Gmail password)</span></label>
+            <div class="input-group"><input type="password" id="cfgPass" placeholder="abcd efgh ijkl mnop" autocomplete="current-password"><button class="btn ghost" id="cfgPassShow" type="button">Show</button></div>
+          </div>
+          <details class="adv"><summary>Advanced: other email providers, Ollama</summary>
+            <div class="grid2">
+              <div class="field"><label>SMTP host</label><input id="cfgHost"></div>
+              <div class="field"><label>Port</label><input id="cfgPort" type="number"></div>
+              <div class="field"><label>Ollama URL <span class="muted">(optional, for ✨)</span></label><input id="cfgOllamaUrl"></div>
+              <div class="field"><label>Ollama model</label><input id="cfgOllamaModel" list="ollamaModels"><datalist id="ollamaModels"></datalist></div>
+              <div class="field"><label>Ollama Cloud key <span class="muted">(blank for local)</span></label><input id="cfgOllamaKey" type="password"></div>
+            </div>
+          </details>
+          <div class="row gap center mt">
+            <button class="btn primary lg" id="cfgSave">Connect</button>
+          </div>
+          <div id="cfgStatus" class="status hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2 · PARTICIPANTS ============ -->
+    <section class="page" id="page-people">
+      <header class="page-head">
+        <div><div class="eyebrow">Step 2 of 5</div><h1>Participants</h1>
+        <p>Download your Google Form responses (<b>Responses › Sheets › File › Download › .xlsx/.csv</b>) and drop the file here.</p></div>
+        <div class="head-actions"><button class="btn primary" data-go="message">Continue →</button></div>
+      </header>
+
+      <label class="drop" id="sheetDrop">
+        <input type="file" id="sheetFile" accept=".xlsx,.xls,.csv,.ods" hidden>
+        <div class="drop-ico">📊</div>
+        <b>Drop your Excel / CSV here</b>
+        <span class="muted">or click to browse · columns are detected automatically</span>
+      </label>
+
+      <div id="sheetLoaded" class="hidden">
+        <div class="filebar card">
+          <div class="file-ico">📄</div>
+          <div class="grow"><b id="sheetName"></b><div class="muted small" id="sheetMeta"></div></div>
+          <label class="btn">Replace file<input type="file" id="sheetFile2" accept=".xlsx,.xls,.csv,.ods" hidden></label>
+          <button class="btn ghost danger-text" id="sheetClear">Remove</button>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="card">
+          <div class="card-head"><h3>Column mapping</h3><span class="muted small">Auto-detected. Change it if something looks wrong.</span></div>
+          <div class="grid2">
+            <div class="field"><label>👤 Name column</label><select id="nameCol"></select></div>
+            <div class="field"><label>✉ Email column</label><select id="emailCol"></select></div>
+          </div>
+          <div class="muted small">Every column can be used in your email and certificate. Type <b>@</b> to insert one:</div>
+          <div class="chips" id="colChips"></div>
+        </div>
+
+        <div class="card flush">
+          <div class="table-tools"><input type="search" id="peopleSearch" placeholder="Search participants…"><span class="muted small" id="peopleCount"></span></div>
+          <div class="table-wrap"><table id="peopleTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3 · MESSAGE ============ -->
+    <section class="page" id="page-message">
+      <header class="page-head">
+        <div><div class="eyebrow">Step 3 of 5</div><h1>Message</h1>
+        <p>Pick a template (invitation before the event, certificate after it) or create your own.</p></div>
+        <div class="head-actions"><button class="btn primary" id="msgNext">Continue →</button></div>
+      </header>
+
+      <div class="tpl-bar">
+        <div class="tpl-tabs" id="tplTabs"></div>
+        <button class="btn ghost sm" id="tplNew">＋ New template</button>
+        <div class="dropdown">
+          <button class="btn ghost sm" id="tplMore" title="More">⋯</button>
+          <div class="menu hidden" id="tplMenu">
+            <button data-act="rename">✏️ Rename</button>
+            <button data-act="duplicate">⧉ Duplicate</button>
+            <button data-act="delete" class="danger-text">🗑 Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-grid">
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><h3>📌 Event details</h3><span class="muted small">Shared by all templates. Insert with <b>@</b>.</span></div>
+            <div id="varsList" class="vars"></div>
+            <button class="btn ghost sm" id="varAdd">＋ Add detail</button>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>✍️ Email</h3><button class="btn ghost sm" id="ollamaBtn" title="Optional: uses your Ollama">✨ Write with Ollama</button></div>
+            <div class="field"><label>Subject</label><input type="text" id="subject" placeholder="Type @ to insert a field"></div>
+            <label class="lbl">Message</label>
+            <div class="rte">
+              <div class="rte-bar" id="rteBar">
+                <select data-cmd="fontSize" title="Text size">
+                  <option value="2">Small</option><option value="3" selected>Normal</option><option value="4">Medium</option><option value="5">Large</option><option value="6">Huge</option>
+                </select>
+                <span class="sep"></span>
+                <button data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                <button data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                <button data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                <label class="color-btn" title="Text colour">A<input type="color" data-cmd="foreColor" value="#4f46e5"></label>
+                <span class="sep"></span>
+                <button data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+                <button data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+                <button data-cmd="justifyLeft" title="Align left">⯇</button>
+                <button data-cmd="justifyCenter" title="Center">≡</button>
+                <span class="sep"></span>
+                <button data-cmd="createLink" title="Insert link">🔗 Link</button>
+                <button data-cmd="insertField" title="Insert a field" class="field-btn">@ Field</button>
+                <button data-cmd="removeFormat" title="Clear formatting">Clear</button>
+              </div>
+              <div class="rte-body" id="rte" contenteditable="true" spellcheck="true"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>📎 Attachments</h3><span class="muted small" id="attSize"></span></div>
+            <div class="att-row cert-row">
+              <div class="att-ico">🎓</div>
+              <div class="grow"><b>Personalised certificate</b><div class="muted small">A separate certificate with each person's name</div></div>
+              <button class="btn ghost sm" data-go="certificate" id="certDesignBtn">Design →</button>
+              <label class="switch"><input type="checkbox" id="incCert"><span></span></label>
+            </div>
+            <label class="drop small-drop cert-ask hidden" id="certAsk">
+              <input type="file" id="certAskFile" accept="image/png,image/jpeg,image/webp,application/pdf" hidden>
+              <b>🎓 Upload your blank certificate</b>
+              <span class="muted small">PNG, JPG or PDF. Next you'll place the name, date and signature on it.</span>
+            </label>
+            <div id="docList"></div>
+            <label class="drop small-drop" id="docDrop">
+              <input type="file" id="docFile" multiple hidden>
+              <span>＋ Add documents (agenda, slides, PDF, brochure…). Same files go to everyone.</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="col sticky">
+          <div class="card">
+            <div class="card-head"><h3>👁 Live preview</h3>
+              <div class="pager"><button class="icon-btn" id="mPrev">‹</button><span id="mPagerLabel"></span><button class="icon-btn" id="mNext">›</button></div>
+            </div>
+            <div id="mailPreview"></div>
+            <div id="msgWarn" class="alert warn hidden"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4 · CERTIFICATE ============ -->
+    <section class="page" id="page-certificate">
+      <header class="page-head">
+        <div><div class="eyebrow">Step 4 of 5 · optional</div><h1>Certificate</h1>
+        <p>Upload your blank certificate once and place the name, date and signature. It's saved for every event.</p></div>
+        <div class="head-actions">
+          <label class="switch-label">Attach to “<span id="certTplName"></span>” <label class="switch"><input type="checkbox" id="incCert2"><span></span></label></label>
+          <button class="btn replace hidden" id="replaceTop" type="button">🔄 Replace certificate image</button>
+          <button class="btn primary" data-go="send">Continue →</button>
+        </div>
+      </header>
+
+      <div class="alert info hidden" id="certOffBanner">Certificates are <b>off</b> for this template, so the email goes without one. Switch it on above if you need it.</div>
+
+      <label class="drop" id="certDrop">
+        <input type="file" id="tplFile" accept="image/png,image/jpeg,image/webp,application/pdf" hidden>
+        <div class="drop-ico">🖼️</div>
+        <b>Upload your blank certificate</b>
+        <span class="muted">PNG, JPG or PDF (first page)</span>
+      </label>
+
+      <div class="editor hidden" id="certEditor">
+        <div class="ribbon" id="ribbon">
+          <div class="dropdown">
+            <button class="btn primary sm" id="addBtn">＋ Add</button>
+            <div class="menu hidden wide" id="addMenu">
+              <button data-add="name"><span>👤 Participant name</span><small>{{Name}}</small></button>
+              <button data-add="date"><span>📅 Today's date</span><small>{{Today}}</small></button>
+              <button data-add="text"><span>🔤 Text / paragraph</span></button>
+              <button data-add="image"><span>✍️ Image: signature, logo, seal</span></button>
+              <div class="menu-sep">From your sheet / event details</div>
+              <div id="addFieldList"></div>
+            </div>
+          </div>
+          <span class="sep"></span>
+          <select id="fFont" class="r-font" title="Font"></select>
+          <input id="fSize" class="r-size" type="number" min="4" max="1000" list="sizeList" title="Font size">
+          <datalist id="sizeList"><option>12</option><option>18</option><option>24</option><option>32</option><option>40</option><option>48</option><option>60</option><option>72</option><option>96</option><option>120</option><option>150</option></datalist>
+          <button class="r-btn" id="fGrow" title="Bigger">A⁺</button>
+          <button class="r-btn" id="fShrink" title="Smaller">A⁻</button>
+          <span class="sep"></span>
+          <button class="r-btn" id="fBold" title="Bold"><b>B</b></button>
+          <button class="r-btn" id="fItalic" title="Italic"><i>I</i></button>
+          <button class="r-btn" id="fUnder" title="Underline"><u>U</u></button>
+          <label class="color-btn" title="Colour">A<input type="color" id="fColor"></label>
+          <span class="sep"></span>
+          <button class="r-btn" data-align="left" title="Align left">⯇</button>
+          <button class="r-btn" data-align="center" title="Center">≡</button>
+          <button class="r-btn" data-align="right" title="Align right">⯈</button>
+          <select id="fLine" title="Line spacing"><option value="1">1.0</option><option value="1.16">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select>
+          <select id="fCase" title="Text case"><option value="none">As typed</option><option value="title">Title Case</option><option value="upper">UPPERCASE</option></select>
+          <span class="grow"></span>
+          <label class="switch-label sm">Preview real data <label class="switch"><input type="checkbox" id="previewToggle"><span></span></label></label>
+          <div class="pager"><button class="icon-btn" id="prevRow">‹</button><span id="pagerLabel"></span><button class="icon-btn" id="nextRow">›</button></div>
+        </div>
+
+        <div class="editor-body">
+          <div class="canvas-wrap" id="canvasWrap"><canvas id="cert"></canvas></div>
+          <aside class="inspector">
+            <div class="insp-sec" id="inspEmpty"><p class="muted small">Click an item on the certificate to edit it, or use <b>＋ Add</b>.<br><br>Double-click text to type on it directly.</p></div>
+            <div class="insp-sec hidden" id="inspText">
+              <h4>Text</h4>
+              <div class="field"><label>Content <span class="muted">(@ for fields)</span></label><textarea id="pText" rows="3"></textarea></div>
+              <label class="switch-label sm"><label class="switch"><input type="checkbox" id="pFit"><span></span></label> Shrink long names to fit</label>
+              <div class="field" id="pFitRow"><label>Max width: <b id="pFitVal"></b>% of certificate</label><input type="range" id="pFitPct" min="10" max="100"></div>
+            </div>
+            <div class="insp-sec hidden" id="inspImage">
+              <h4>Image</h4>
+              <label class="switch-label sm"><label class="switch"><input type="checkbox" id="pRemoveWhite"><span></span></label> Remove white background</label>
+              <div class="field"><label>Opacity</label><input type="range" id="pOpacity" min="10" max="100"></div>
+            </div>
+            <div class="insp-sec hidden" id="inspArrange">
+              <h4>Arrange</h4>
+              <div class="btn-grid">
+                <button class="btn sm" id="pCenterH">⇔ Center</button>
+                <button class="btn sm" id="pCenterV">⇕ Middle</button>
+                <button class="btn sm" id="pFront">▲ Forward</button>
+                <button class="btn sm" id="pBack">▼ Backward</button>
+                <button class="btn sm" id="pDup">⧉ Duplicate</button>
+                <button class="btn sm danger-text" id="pDelete">🗑 Delete</button>
+              </div>
+            </div>
+            <div class="insp-sec">
+              <h4>Layers</h4>
+              <div id="layers" class="layers"></div>
+            </div>
+            <div class="insp-sec">
+              <h4>Output file</h4>
+              <div class="field"><label>File name <span class="muted">(@ for fields)</span></label><input type="text" id="filePattern"></div>
+              <div class="grid2 tight">
+                <div class="field"><label>Format</label><select id="fileFormat"><option value="pdf">PDF</option><option value="png">PNG</option><option value="jpg">JPG</option></select></div>
+                <div class="field"><label>{{Today}} format</label><select id="dateFmt"></select></div>
+              </div>
+              <label class="btn replace block">🔄 Replace certificate image<input type="file" id="tplFile2" accept="image/png,image/jpeg,image/webp,application/pdf" hidden></label>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5 · REVIEW & SEND ============ -->
+    <section class="page" id="page-send">
+      <header class="page-head">
+        <div><div class="eyebrow">Step 5 of 5</div><h1>Review &amp; Send</h1>
+        <p>Check the final email, send yourself a test, choose who gets it, then send.</p></div>
+      </header>
+
+      <div class="summary" id="summary"></div>
+
+      <div class="send-grid">
+        <div class="card">
+          <div class="card-head"><h3>👁 Final preview</h3>
+            <div class="pager"><button class="icon-btn" id="sPrev">‹</button><span id="sPagerLabel"></span><button class="icon-btn" id="sNext">›</button></div>
+          </div>
+          <div id="finalPreview"></div>
+        </div>
+
+        <div class="col">
+          <div class="card step-card">
+            <div class="step-badge">A</div>
+            <h3>Send a test to yourself</h3>
+            <p class="muted small">You receive exactly what the person in the preview will get.</p>
+            <div class="input-group"><input type="email" id="testTo" placeholder="your email"><button class="btn" id="testBtn">Send test</button></div>
+            <div id="testStatus" class="status hidden"></div>
+          </div>
+
+          <div class="card step-card">
+            <div class="step-badge">B</div>
+            <h3>Send to selected people</h3>
+            <div id="checklist" class="checklist"></div>
+            <div class="opts">
+              <label class="small">Gap between emails <input type="number" id="delay" min="0" max="60" step="0.5"> sec</label>
+              <label class="switch-label sm"><label class="switch"><input type="checkbox" id="skipSent" checked><span></span></label> Skip people who already got this template today</label>
+            </div>
+            <div class="row gap wrap mt">
+              <button class="btn primary lg" id="sendBtn">Send</button>
+              <button class="btn hidden" id="pauseBtn">Pause</button>
+              <button class="btn danger hidden" id="stopBtn">Stop</button>
+              <button class="btn hidden" id="retryBtn">Retry failed</button>
+              <button class="btn ghost hidden" id="reportBtn">⬇ Report</button>
+            </div>
+            <div class="progress"><div id="progBar"></div></div>
+            <div id="progText" class="small muted"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card flush">
+        <div class="table-tools">
+          <input type="search" id="rSearch" placeholder="Search name or email…">
+          <div class="seg" id="rFilter">
+            <button data-f="all" class="on">All</button><button data-f="selected">Selected</button><button data-f="unselected">Not selected</button><button data-f="sent">Sent</button><button data-f="failed">Failed</button>
+          </div>
+          <span class="grow"></span>
+          <button class="btn ghost sm" id="rAll">Select all</button>
+          <button class="btn ghost sm" id="rNone">Select none</button>
+          <button class="btn ghost sm" id="rInvert">Invert</button>
+          <button class="btn ghost sm" id="rUnsent">Only not-yet-sent</button>
+        </div>
+        <div class="table-wrap tall"><table id="sendTable"></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="mentionMenu" class="mention-menu hidden"></div>
+<div id="toasts" class="toasts"></div>
+<input type="file" id="imgFile" accept="image/*" hidden>
+
+<script src="vendor/fabric.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
